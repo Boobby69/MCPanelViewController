@@ -254,27 +254,35 @@ const static NSString *MCPanelViewGestureAnimationDirectionKey = @"MCPanelViewGe
 }
 
 - (void)dismiss {
-	CGRect bounds = self.parentViewController.view.bounds;
+    [self dismissWithDuration:MCPanelViewAnimationDuration completion:nil];
+}
 
-	CGFloat currentWidth = CGRectGetMinX(self.rootViewController.view.frame);
-	if (self.direction == MCPanelAnimationDirectionLeft) {
-		currentWidth += self.maxWidth;
-	}
-	else {
-		currentWidth = CGRectGetWidth(bounds) - currentWidth;
-	}
-	CGFloat ratio = currentWidth / self.maxWidth;
-
-	__weak typeof(self) weakSelf = self;
-
-    [UIView animateWithDuration:MCPanelViewAnimationDuration * ratio delay:0 usingSpringWithDamping:1 initialSpringVelocity:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-	    typeof(self) strongSelf = weakSelf;
-	    [strongSelf layoutSubviewsToWidth:0];
-	} completion: ^(BOOL finished) {
-	    typeof(self) strongSelf = weakSelf;
-	    [self.rootViewController removeFromParentViewControllerCallingAppearanceMethods:YES];
-	    [strongSelf removeFromParentViewControllerCallingAppearanceMethods:YES];
-	}];
+- (void)dismissWithDuration:(NSTimeInterval)duration completion:(void (^)(void))completion
+{
+    CGRect bounds = self.parentViewController.view.bounds;
+    
+    CGFloat currentWidth = CGRectGetMinX(self.rootViewController.view.frame);
+    if (self.direction == MCPanelAnimationDirectionLeft) {
+        currentWidth += self.maxWidth;
+    }
+    else {
+        currentWidth = CGRectGetWidth(bounds) - currentWidth;
+    }
+    CGFloat ratio = currentWidth / self.maxWidth;
+    
+    __weak typeof(self) weakSelf = self;
+    
+    [UIView animateWithDuration:duration * ratio delay:0 usingSpringWithDamping:1 initialSpringVelocity:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+        typeof(self) strongSelf = weakSelf;
+        [strongSelf layoutSubviewsToWidth:0];
+    } completion: ^(BOOL finished) {
+        typeof(self) strongSelf = weakSelf;
+        [self.rootViewController removeFromParentViewControllerCallingAppearanceMethods:YES];
+        [strongSelf removeFromParentViewControllerCallingAppearanceMethods:YES];
+        if (completion) {
+            completion();
+        }
+    }];
 }
 
 - (void)willMoveToParentViewController:(UIViewController *)parent {
